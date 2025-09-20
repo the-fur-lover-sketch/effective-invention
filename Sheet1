@@ -1,65 +1,65 @@
-t * 1 + space ,220, dur_s * t + dur_i, "square"
-t * 2 + space ,440, dur_s * t + dur_i, "square"
-t * 3 + space ,220, dur_s * t + dur_i, "square"
-t * 4 + space ,220, dur_s * t + dur_i, "square"
-t * 5 + space ,220, dur_s * t + dur_i, "square"
-t * 6 + space ,440, dur_s * t + dur_i, "square"
-t * 7 + space ,440, dur_s * t + dur_i, "square"
-t * 8 + space ,440, dur_s * t + dur_i, "square"
-t * 9 + space ,220, dur_s * t + dur_i, "square"
-t * 10 + space ,220, dur_s * t + dur_i, "square"
-t * 11 + space ,440, dur_s * t + dur_i, "square"
-t * 12 + space ,220, dur_s * t + dur_i, "square"
-t * 13 + space ,440, dur_s * t + dur_i, "square"
-t * 14 + space ,220, dur_s * t + dur_i, "square"
-t * 15 + space ,220, dur_s * t + dur_i, "square"
-t * 16 + space ,440, dur_s * t + dur_i, "square"
+t_1*1+space ,220, dur_s*t_1+dur_i, "square"
+t_1*2+space ,440, ., .
+t_1*3+space ,220, ., .
+t_1*4+space ,220, ., .
+t_1*5+space ,440, ., .
+t_1*6+space ,220, ., .
+t_1*7+space ,440, ., .
+t_1*8+space ,440, ., .
+t_1*9+space ,220, ., .
+t_1*10+space ,220, ., .
+t_1*11+space ,440, ., .
+t_1*12+space ,220, ., .
+t_1*13+space ,440, ., .
+t_1*14+space ,220, ., .
+t_1*15+space ,220, ., .
+t_1*16+space ,440, ., .
 
-t * 17 + space ,220, dur_s * t + dur_i, "square"
-t * 18 + space ,440, dur_s * t + dur_i, "square"
-t * 19 + space ,220, dur_s * t + dur_i, "square"
-t * 20 + space ,220, dur_s * t + dur_i, "square"
-t * 21 + space ,220, dur_s * t + dur_i, "square"
-t * 22 + space ,440, dur_s * t + dur_i, "square"
-t * 23 + space ,440, dur_s * t + dur_i, "square"
-t * 24 + space ,440, dur_s * t + dur_i, "square"
-t * 25 + space ,220, dur_s * t + dur_i, "square"
-t * 26 + space ,220, dur_s * t + dur_i, "square"
-t * 27 + space ,440, dur_s * t + dur_i, "square"
-t * 28 + space ,220, dur_s * t + dur_i, "square"
-t * 29 + space ,440, dur_s * t + dur_i, "square"
-t * 30 + space ,220, dur_s * t + dur_i, "square"
-t * 31 + space ,220, dur_s * t + dur_i, "square"
-t * 32 + space ,440, dur_s * t + dur_i, "square"
-t * 33 + space ,220, dur_s * t + dur_i, "square"
-t * 34 + space ,440, dur_s * t + dur_i, "square"
-t * 35 + space ,220, dur_s * t + dur_i, "square"
-t * 36 + space ,220, dur_s * t + dur_i, "square"
-t * 37 + space ,220, dur_s * t + dur_i, "square"
-t * 38 + space ,440, dur_s * t + dur_i, "square"
-t * 39 + space ,440, dur_s * t + dur_i, "square"
-t * 40 + space ,440, dur_s * t + dur_i, "square"
-t * 41 + space ,220, dur_s * t + dur_i, "square"
-t * 42 + space ,220, dur_s * t + dur_i, "square"
-t * 43 + space ,440, dur_s * t + dur_i, "square"
-t * 44 + space ,220, dur_s * t + dur_i, "square"
-t * 45 + space ,440, dur_s * t + dur_i, "square"
-t * 46 + space ,220, dur_s * t + dur_i, "square"
-t * 47 + space ,220, dur_s * t + dur_i, "square"
-t * 48 + space ,440, dur_s * t + dur_i, "square"
-t * 49 + space ,220, dur_s * t + dur_i, "square"
-t * 50 + space ,440, dur_s * t + dur_i, "square"
-t * 51 + space ,220, dur_s * t + dur_i, "square"
-t * 52 + space ,220, dur_s * t + dur_i, "square"
-t * 53 + space ,220, dur_s * t + dur_i, "square"
-t * 54 + space ,440, dur_s * t + dur_i, "square"
-t * 55 + space ,440, dur_s * t + dur_i, "square"
-t * 56 + space ,440, dur_s * t + dur_i, "square"
-t * 57 + space ,220, dur_s * t + dur_i, "square"
-t * 58 + space ,220, dur_s * t + dur_i, "square"
-t * 59 + space ,440, dur_s * t + dur_i, "square"
-t * 60 + space ,220, dur_s * t + dur_i, "square"
-t * 61 + space ,440, dur_s * t + dur_i, "square"
-t * 62 + space ,220, dur_s * t + dur_i, "square"
-t * 63 + space ,220, dur_s * t + dur_i, "square"
-t * 64 + space ,440, dur_s * t + dur_i, "square"
+t_1*17+space ,220, ., .
+t_1*18+space ,440, ., .
+t_1*19+space ,220, ., .
+t_1*20+space ,220, ., .
+t_1*21+space ,440, ., .
+t_1*22+space ,220, ., .
+t_1*23+space ,440, ., .
+t_1*24+space ,440, ., .
+t_1*25+space ,220, ., .
+t_1*26+space ,220, ., .
+t_1*27+space ,440, ., .
+t_1*28+space ,220, ., .
+t_1*29+space ,440, ., .
+t_1*30+space ,220, ., .
+t_1*31+space ,220, ., .
+t_1*32+space ,440, ., .
+t_1*33+space ,220, ., .
+t_1*34+space ,440, ., .
+t_1*35+space ,220, ., .
+t_1*36+space ,220, ., .
+t_1*37+space ,440, ., .
+t_1*38+space ,220, ., .
+t_1*39+space ,440, ., .
+t_1*40+space ,440, ., .
+t_1*41+space ,220, ., .
+t_1*42+space ,220, ., .
+t_1*43+space ,440, ., .
+t_1*44+space ,220, ., .
+t_1*45+space ,440, ., .
+t_1*46+space ,220, ., .
+t_1*47+space ,220, ., .
+t_1*48+space ,440, ., .
+t_1*49+space ,220, ., .
+t_1*50+space ,440, ., .
+t_1*51+space ,220, ., .
+t_1*52+space ,220, ., .
+t_1*53+space ,440, ., .
+t_1*54+space ,220, ., .
+t_1*55+space ,440, ., .
+t_1*56+space ,440, ., .
+t_1*57+space ,220, ., .
+t_1*58+space ,220, ., .
+t_1*59+space ,440, ., .
+t_1*60+space ,220, ., .
+t_1*61+space ,440, ., .
+t_1*62+space ,220, ., .
+t_1*63+space ,220, ., .
+t_1*64+space ,440, ., .
