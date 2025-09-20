@@ -1,5 +1,5 @@
-t_1*1+space ,220, dur_s*t_1+dur_i, "saw"
-t_1*2+space ,440, ., .
+t_1*1+space ,220, dur_s*t_1+dur_i+1, "square"
+t_1*2+space ,440, dur_s*t_1+dur_i, .
 t_1*3+space ,220, ., .
 t_1*4+space ,220, ., .
 t_1*5+space ,440, ., .
