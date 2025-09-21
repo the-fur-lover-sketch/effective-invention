@@ -1,2 +1,2 @@
 # effective-invention
-Own files for chords python
+There is 1 Python program with loads other files to play music
