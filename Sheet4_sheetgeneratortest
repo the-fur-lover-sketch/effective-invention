@@ -1,0 +1,33 @@
+=== Variables ===
+t_1 = 1.0
+sp_1 = 1.0
+f_1 = 1.0
+ds_1 = 1.0
+di_1 = 1.0
+
+=== Current Score ===
+t_1*1 + sp_1 , f_1*1 , ds_1*t_1 + di_1 , "square"
+t_1*2 + sp_1 , f_1*2 , ds_1*t_1 + di_1 , "square"
+t_1*3 + sp_1 , f_1*1 , ds_1*t_1 + di_1 , "square"
+t_1*4 + sp_1 , f_1*1 , ds_1*t_1 + di_1 , "square"
+t_1*5 + sp_1 , f_1*2 , ds_1*t_1 + di_1 , "square"
+t_1*6 + sp_1 , f_1*1 , ds_1*t_1 + di_1 , "square"
+t_1*7 + sp_1 , f_1*2 , ds_1*t_1 + di_1 , "square"
+t_1*8 + sp_1 , f_1*2 , ds_1*t_1 + di_1 , "square"
+t_1*9 + sp_1 , f_1*1 , ds_1*t_1 + di_1 , "square"
+t_1*10 + sp_1 , f_1*1 , ds_1*t_1 + di_1 , "square"
+t_1*11 + sp_1 , f_1*2 , ds_1*t_1 + di_1 , "square"
+t_1*12 + sp_1 , f_1*1 , ds_1*t_1 + di_1 , "square"
+t_1*13 + sp_1 , f_1*2 , ds_1*t_1 + di_1 , "square"
+t_1*14 + sp_1 , f_1*1 , ds_1*t_1 + di_1 , "square"
+t_1*15 + sp_1 , f_1*1 , ds_1*t_1 + di_1 , "square"
+t_1*16 + sp_1 , f_1*2 , ds_1*t_1 + di_1 , "square"
+t_1*17 + sp_1 , [f_1*1,f_1*4,f_1*8] , ds_1*t_1 + di_1 , "square"
+t_1*18 + sp_1 , [f_1*2,f_1*4,f_1*8] , ds_1*t_1 + di_1 , "square"
+t_1*19 + sp_1 , [f_1*2,f_1*4,f_1*8] , ds_1*t_1 + di_1 , "square"
+t_1*20 + sp_1 , [f_1*2,f_1*4,f_1*8] , ds_1*t_1 + di_1 , "square"
+t_1*21 + sp_1 , [f_1*2,f_1*4,f_1*8] , ds_1*t_1 + di_1 , "square"
+t_1*22 + sp_1 , [f_1*2,f_1*4,f_1*8] , ds_1*t_1 + di_1 , "square"
+t_1*23 + sp_1 , [f_1*2,f_1*4,f_1*8] , ds_1*t_1 + di_1 , "square"
+t_1*24 + sp_1 , [f_1*2,f_1*4,f_1*8] , ds_1*t_1 + di_1 , "square"
+t_1*25 + sp_1 , [f_1*2,f_1*4,f_1*8] , ds_1*t_1 + di_1 , "square"
