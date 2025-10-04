@@ -1,0 +1,241 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>円形スライダー 3独立音 ON/OFF v13</title>
+<style>
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f0f0f0;
+  }
+  canvas {
+    border: 1px solid #333;
+    touch-action: none;
+  }
+  button {
+    position: absolute;
+    top: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #444;
+    color: white;
+    border: none;
+    cursor: pointer;
+    z-index: 10;
+  }
+  #startButton { left: 10px; }
+  #toggle1 { left: 150px; }
+  #toggle2 { left: 290px; }
+  #toggle3 { left: 430px; }
+</style>
+</head>
+<body>
+<canvas id="slider" width="500" height="500"></canvas>
+<button id="startButton">音を開始</button>
+<button id="toggle1">スライダー1 OFF</button>
+<button id="toggle2">スライダー2 OFF</button>
+<button id="toggle3">スライダー3 OFF</button>
+
+<script src="https://cdn.jsdelivr.net/npm/tone@14.8.11/build/Tone.js"></script>
+<script>
+const canvas = document.getElementById('slider');
+const ctx = canvas.getContext('2d');
+
+const centerX = canvas.width/2;
+const centerY = canvas.height/2;
+const radius = 120;
+
+const values = [...Array(63).keys()].map(i=>i+1);
+const log2Table = {};
+values.forEach(v=>{ log2Table[v] = Math.log2(v); });
+
+// 赤点グループ作成
+const groupData = [];
+const groups = {};
+values.forEach(v=>{
+  const logVal = log2Table[v];
+  const frac = logVal % 1;
+  const key = frac.toFixed(4);
+  if(!groups[key]) groups[key]=[];
+  groups[key].push({value:v, logVal});
+});
+Object.values(groups).forEach(group=>{
+  const ang = (group[0].logVal%1)*2*Math.PI;
+  groupData.push({angle: ang, values: group.map(g=>g.value)});
+});
+
+// スライダー管理 (3本) 初期値24
+const initialValue = 24;
+const initialLog2 = Math.log2(initialValue);
+
+const sliders = [
+  { synth: new Tone.Synth().toDestination(), rotationCount: initialLog2, currentFreq: null, currentAngle: initialLog2*2*Math.PI, currentValue: initialValue, isPlaying:true },
+  { synth: new Tone.Synth().toDestination(), rotationCount: initialLog2, currentFreq: null, currentAngle: initialLog2*2*Math.PI, currentValue: initialValue, isPlaying:true },
+  { synth: new Tone.Synth().toDestination(), rotationCount: initialLog2, currentFreq: null, currentAngle: initialLog2*2*Math.PI, currentValue: initialValue, isPlaying:true }
+];
+
+let activeSlider = null;
+let prevTouchAngle = 0;
+
+// 描画
+function drawSlider(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  ctx.beginPath();
+  ctx.arc(centerX,centerY,radius,0,Math.PI*2);
+  ctx.strokeStyle='#444';
+  ctx.lineWidth=5;
+  ctx.stroke();
+
+  ctx.font = '12px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  // 赤点とラベル
+  groupData.forEach(g=>{
+    const x = centerX + radius*Math.cos(g.angle);
+    const y = centerY + radius*Math.sin(g.angle);
+
+    ctx.beginPath();
+    ctx.arc(x,y,5,0,Math.PI*2);
+    ctx.fillStyle='red';
+    ctx.fill();
+
+    g.values.forEach((val, idx)=>{
+      const labelRadius = radius + 15 + idx*12; 
+      const lx = centerX + labelRadius*Math.cos(g.angle);
+      const ly = centerY + labelRadius*Math.sin(g.angle);
+      ctx.fillStyle = 'black';
+      ctx.fillText(val, lx, ly);
+    });
+  });
+
+  // 緑点 + 現在鳴っている整数値
+  sliders.forEach((s, idx)=>{
+    const gx = centerX + radius*Math.cos(s.currentAngle);
+    const gy = centerY + radius*Math.sin(s.currentAngle);
+
+    ctx.beginPath();
+    ctx.arc(gx, gy, 7, 0, Math.PI*2);
+    ctx.fillStyle='green';
+    ctx.fill();
+
+    const labelRadius = radius + 20;
+    const lx = centerX + labelRadius * Math.cos(s.currentAngle);
+    const ly = centerY + labelRadius * Math.sin(s.currentAngle);
+    ctx.fillStyle = 'blue';
+    ctx.font = '14px monospace';
+    ctx.fillText(s.currentValue, lx, ly);
+  });
+}
+
+// スライダー更新
+function updateSlider(slider, e){
+  let clientX, clientY;
+  if(e.touches){
+    clientX = e.touches[0].clientX;
+    clientY = e.touches[0].clientY;
+  } else {
+    clientX = e.clientX;
+    clientY = e.clientY;
+  }
+
+  const rect = canvas.getBoundingClientRect();
+  const dx = clientX - rect.left - centerX;
+  const dy = clientY - rect.top - centerY;
+  let newAngle = Math.atan2(dy, dx);
+
+  let delta = newAngle - prevTouchAngle;
+  if(delta > Math.PI) delta -= 2*Math.PI;
+  if(delta < -Math.PI) delta += 2*Math.PI;
+
+  slider.rotationCount += delta/(2*Math.PI);
+  prevTouchAngle = newAngle;
+
+  let fracAngle = slider.rotationCount % 1;
+  if(fracAngle < 0) fracAngle += 1;
+
+  let analyzed = Math.floor(slider.rotationCount) + fracAngle;
+
+  let closest = values.reduce((a,b)=>{
+    return Math.abs(log2Table[b]-analyzed) < Math.abs(log2Table[a]-analyzed)? b:a;
+  });
+
+  slider.currentAngle = (log2Table[closest]%1)*2*Math.PI;
+  const freq = closest * (261.6/24);
+  slider.currentValue = closest;
+
+  if(slider.isPlaying && slider.currentFreq !== freq){
+    slider.synth.triggerAttack(freq);
+    slider.currentFreq = freq;
+  }
+
+  drawSlider();
+}
+
+// タッチ開始で最も近いスライダーを選択
+function startTouch(e){
+  e.preventDefault();
+  const touch = e.touches ? e.touches[0] : e;
+  const tx = touch.clientX - canvas.getBoundingClientRect().left;
+  const ty = touch.clientY - canvas.getBoundingClientRect().top;
+
+  let minDist = Infinity;
+  sliders.forEach((s,i)=>{
+    const sx = centerX + radius*Math.cos(s.currentAngle);
+    const sy = centerY + radius*Math.sin(s.currentAngle);
+    const dist = Math.hypot(tx - sx, ty - sy);
+    if(dist < minDist){
+      minDist = dist;
+      activeSlider = i;
+    }
+  });
+
+  prevTouchAngle = Math.atan2(ty-centerY, tx-centerX);
+  updateSlider(sliders[activeSlider], e);
+}
+
+// イベント
+canvas.addEventListener('mousedown', startTouch);
+canvas.addEventListener('mousemove', e=>{ if(activeSlider!==null) updateSlider(sliders[activeSlider], e); });
+canvas.addEventListener('mouseup', ()=>{ activeSlider=null; });
+canvas.addEventListener('mouseleave', ()=>{ activeSlider=null; });
+
+canvas.addEventListener('touchstart', startTouch);
+canvas.addEventListener('touchmove', e=>{ e.preventDefault(); if(activeSlider!==null) updateSlider(sliders[activeSlider], e); });
+canvas.addEventListener('touchend', ()=>{ activeSlider=null; });
+
+// 初期描画ボタン
+document.getElementById('startButton').addEventListener('click', ()=>{Tone.start().then(drawSlider);});
+
+// スライダー個別 ON/OFF
+document.getElementById('toggle1').addEventListener('click', ()=>{
+  const s = sliders[0];
+  s.isPlaying = !s.isPlaying;
+  if(!s.isPlaying){ s.synth.triggerRelease(); s.currentFreq=null; document.getElementById('toggle1').textContent='スライダー1 ON'; }
+  else{ document.getElementById('toggle1').textContent='スライダー1 OFF'; }
+});
+document.getElementById('toggle2').addEventListener('click', ()=>{
+  const s = sliders[1];
+  s.isPlaying = !s.isPlaying;
+  if(!s.isPlaying){ s.synth.triggerRelease(); s.currentFreq=null; document.getElementById('toggle2').textContent='スライダー2 ON'; }
+  else{ document.getElementById('toggle2').textContent='スライダー2 OFF'; }
+});
+document.getElementById('toggle3').addEventListener('click', ()=>{
+  const s = sliders[2];
+  s.isPlaying = !s.isPlaying;
+  if(!s.isPlaying){ s.synth.triggerRelease(); s.currentFreq=null; document.getElementById('toggle3').textContent='スライダー3 ON'; }
+  else{ document.getElementById('toggle3').textContent='スライダー3 OFF'; }
+});
+
+// 初期描画
+drawSlider();
+</script>
+</body>
+</html>
