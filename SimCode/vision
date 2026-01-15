@@ -1,1 +1,13 @@
+Japanese
+コードは Actio と Coordo から成る
+Coordo の中に Actio と Coordo を含むことができる
+Coordo は 親Coordo から引数を与えられる。変数で変更できるのは Coordo 独自の変数(スコープと言う言葉をよく知らないがそんな感じ?)と引数だけ(その Coordo より上位で Coordo が変更できる変数は引数のみ）
+Coordo は内包する Actio , Coordo を実行する。ユーザーは実行順序を木構造による制約で指定する
 
+今のところjavascript の中で実行することを検討している
+<javascript>
+  #コードを実行
+  コード:
+    Coordo(UserInput , Memory => Display , Memory):
+      ...
+      ...
