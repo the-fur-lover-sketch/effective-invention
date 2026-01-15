@@ -5,9 +5,24 @@ Coordo は 親Coordo から引数を与えられる。変数で変更できる�
 Coordo は内包する Actio , Coordo を実行する。ユーザーは実行順序を木構造による制約で指定する
 
 今のところjavascript の中で実行することを検討している
+
+実行環境のイメージ↓
 <javascript>
   #コードを実行
   コード:
     Coordo(UserInput , Memory => Display , Memory):
       ...
       ...
+
+コードのイメージ（素数判定）↓ （書きかけ）
+
+vA = 'Calculating' #state
+vB = 9 #number
+Coordo (vA,vB => vA):
+  vA = 1 #割る数
+  Actio (vA,iB => vA, iA):
+    if iB % vA == 0:
+      ...
+    ...
+  ...
+  ...
