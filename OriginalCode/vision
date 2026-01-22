@@ -7,6 +7,8 @@ Coordo は内包する Actio , Coordo を実行する。ユーザーは実行順
 今のところjavascript の中で実行することを検討している
 
 各 Actio が終了フラグを持ち、それが1 になると次のActio の実行を始める、 0 の間はその Actio を実行し続ける
+FINを変更しなければ1回実行して止まる
+
 
 文字列としてのコードには階層構造が存在するが、実行時にはすべてのActio を対等に扱う。グラフ理論(?) のトポロジカルソートの考えを用いて、今実行できる Actio を求める 
 さらに並列処理をイメージして、同時に実行しても支障がない Actio を並列に実行する。
@@ -23,14 +25,35 @@ Coordo は内包する Actio , Coordo を実行する。ユーザーは実行順
 
 vA = 'Calculating' #state
 vB = 9 #number
-Coordo (vA[0],vB[0] => vA{1}):
+Coordo ( vA[0], vB[0] => vA{1}):
   vA = 1 #割る数
   ...
-  Actio (vA[0],iB => vA{1}, vB{0}):
-    if iB % vA == 0:
+  Actio ( vA[0], i2 => vA{1}, vB{0}):
+    if i2 % vA == 0:
       ...
     ...
-  Actio (vB[1] => oA):
+  Actio (vB[1] => o1):
     ...
   ...
   ...
+
+
+繰り返し処理のイメージ (vA が 10 を超えるまで vA に vB を足し続けるプログラム)↓
+<Coordo の繰り返し>
+...
+  Coordo ( vA[], vB[] => vA{}, CPUBIT_FIN):
+    Actio( i1, i2 => vA{0}):
+      vA = i1 + i2
+    Actio (vA[0] => o2):
+      if vA > 10:
+        o2 = 1  #終了フラグを立てる
+      else:
+        o2 = 0  #繰り返し継続
+
+<Actio の繰り返し>
+
+...
+  Actio ( vA[] => vA{}, CPUBIT_FIN):
+    vA = vA + 1
+    if vA <= 10:
+      CPUBIT_FIN = 1
