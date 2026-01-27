@@ -11,8 +11,8 @@ Coordo(N => Result):
                 2o2 = "True"
                 CoordoCTR("LoopThis")=0
             else:
-                2o1 = 2i1 + 1
+                2o1 = 2i1 + 1        #n += 1
     Actio(1vB[0] => 1o1):
-        1o1 = 1vB
+        1o1 = 1vB                #push Out to Result
     Actio( => 1vA{0}):
-        1vA = 2
+        1vA = 2                #define n
