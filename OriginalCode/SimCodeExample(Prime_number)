@@ -1,18 +1,18 @@
 Coordo(N => Result):
-    Coordo(1vA[0], 1i1 => 1vA{1}, 1vB{0}):
-        Actio(2i1, 2i2 => 2vA{0}):
-            2vA = 2i2 % 2i1
-        Actio(2i1, 2i2, 2vA[0] => 2o1, 2o2):
+    Coordo(vA[0], i1 => vA{1}, vB{0}):
+        Actio(i1, i2 => vA{0}):
+            vA = i2 % i1
+        Actio(i1, i2, vA[0] => o1, o2):
             CoordoCTR("LoopThis")=1
-            if 2vA == 0:
-                2o2 = "False"
+            if vA == 0:
+                o2 = "False"
                 CoordoCTR("LoopThis")=0
-            elif 2i2 == 2i1 + 1:
-                2o2 = "True"
+            elif i2 == i1 + 1:
+                o2 = "True"
                 CoordoCTR("LoopThis")=0
             else:
-                2o1 = 2i1 + 1        #n += 1
-    Actio(1vB[0] => 1o1):
-        1o1 = 1vB                #push Out to Result
+                o1 = i1 + 1        #n += 1
+    Actio(1vB[0] => o1):
+        o1 = vB                #push Out to Result
     Actio( => 1vA{0}):
-        1vA = 2                #define n
+        vA = 2                #define n
