@@ -20,7 +20,7 @@ FINを変更しなければ1回実行して止まる
     Coordo(UserInput , Memory => Display , Memory):
       ...
       ...
-
+  -------------------------------------------------------
 
 コードのイメージ（素数判定）を書いた。Coordo下のi,v ,o にCoordoのIdをつけると、階層構造の意味がなくなるが、わかりやすくなる
 
@@ -35,11 +35,29 @@ FINを変更しなければ1回実行して止まる
         o2 = 1  #終了フラグを立てる
       else:
         o2 = 0  #繰り返し継続
-
+  -----------------------------------------------
 <Actio の繰り返し>
-
 ...
   Actio ( vA[] => vA{}, CPUBIT_FIN):
     vA = vA + 1
     if vA <= 10:
       CPUBIT_FIN = 1
+  ----------------------------------------------
+<やること>
+  <RunActio>
+    1.Actioの行を読み取って、VarDictのどこにアクセスすればよいかわかる
+    2.VarDictを改変する
+    3.CRestrictNum, Queue を更新する
+  <ReadCoordo>
+    1.CInOut, VarDict に要素を追加する
+    2.ActioLnes から VarTree を作る
+    3.VarTree から Queue, CRestrictTree, CRestrictNum をつくる
+  -------------------------------------
+
+<データ>
+  VarDict = {'N': N, 'Result': Result, '1': {'vA': 0 , 'vB': ''} , '2': {'vA': 0} } 
+  Queue = []
+  CRestrictTree = {'1': {'2': ['15'] , '15': [] , '17': ['2'] }
+  CRestrictNum = {'1': {'2': 1 , '15': 1 , '17': 0} , '2': {'3': 0 , '5': 1} }
+  CInOut = {'1': {'i1': 'N' , 'o1': 'Result'} , '2': {'i1': '1vA' , 'i2': 'N' , 'o1': '1vA' , 'o2': '1vC'}
+  CCTR = {'1': {'LoopThis': 0 , 'LeaveNow': 0} , '2': {'LoopThis': 0 , 'LeaveNow': 0} }
