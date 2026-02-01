@@ -64,9 +64,9 @@ FINを変更しなければ1回実行して止まる
   ActioDict = {'1': ['2','15','17'] , '2': ['3','5'] }
 
 関数
-Finire
-Spectare
-Boot
-Operari
-Repetere
+Finire Actioの終了
+Spectare ループ離脱、ループ判断
+
+Operari 処理の実行
+Repetere Coordoの繰り返し開始
 
