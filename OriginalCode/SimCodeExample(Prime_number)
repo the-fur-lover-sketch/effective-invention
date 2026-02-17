@@ -7,8 +7,8 @@
 Table():
     mov #CPU_a , @Result[0]                    Resultを代入
     mov @N{0} , #CPU_b                         Nをロード
-    mov @CTR("LoopThis") , 1                    ループコントロール
-    mov @CTR("Spectate") , 0
+    mov @CTR_LoopThis , 1                    ループコントロール
+    mov @CTR_Spectate , 0
     Table():
         mov ^Result{0} , @Text[0]
         mov @n{0} , 2
@@ -21,6 +21,8 @@ Table():
             mov @TextList{0} , ["False" , "True" , "Calculating"]
             mov ^Text{0} , （ここでDecisionの掛け算でどうにかする）
             mov ^n{1} , (ここもDecision でどうにかする）
+            mov @CTR_Spectate , (Decisionでどうにかする)
+            mov @CTR_LoopThis , (Decisionでどうにかする)
 
 ---------------------------------------------
 
