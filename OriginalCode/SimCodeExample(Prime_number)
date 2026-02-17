@@ -54,10 +54,11 @@ Table():
         mov @Ncopy{0} , ^N[0]
         Table():
             div @Remain{0} , ^Ncopy[0] , ^n[0]
-            beq @DecisionA{0} , @Remain[0: , 0
+            beq @DecisionA{0} , @Remain[0] , 0
             sub @n_minus_1{0} , ^n[0] , 1
             beq @DecisionB{0} , ^Ncopy[0] , @n_minus_1[0]
-
+            mov @TextList{0} , ["False" , "True" , "Calculating"]
+            mov ^Text{0} , （ここでDecisionの掛け算でどうにかする）
 
 
 
