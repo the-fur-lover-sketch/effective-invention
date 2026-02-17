@@ -16,3 +16,50 @@ Coordo(N => Result):
         o1 = vB                #push Out to Result
     Actio( => 1vA{0}):
         vA = 2                #define n
+
+
+
+Coordo(N => Result):
+    Coordo(vA[0], i1 => vA{1}, vB{0}):            i1:割る数  i2:N,  vA:あまり, vB:Result文字列
+        Actio(i1, i2 => vA{0}):
+            vA = i2 % i1
+        Actio(i1, i2, vA[0] => o1, o2):          
+            CoordoCTR("LoopThis")=1
+            if vA == 0:
+                o2 = "False"
+                CoordoCTR("LoopThis")=0
+            elif i2 == i1 + 1:    
+                o2 = "True"
+                CoordoCTR("LoopThis")=0
+            else:
+                o1 = i1 + 1        #n += 1
+    Actio(1vB[0] => o1):
+        o1 = vB                #push Out to Result 文字列を代入
+    Actio( => 1vA{0}):
+        vA = 2                #define n  割る数決める
+
+<17/02/2026 更新>
+@ : そのtable内の変数
+# : 最上位Table がCPU にアクセス
+^ : 上位table の変数にアクセス
+--------------------------------
+Table():
+    mov #CPU_a , @Result[0]
+    mov @N{0} , #CPU_b
+    mov @CTR("LoopThis") , 1
+    mov @CTR("Spectate") , 0
+    Table():
+        mov ^Result{0} , @Text[0]
+        mov @n{0} , 2
+        mov @Ncopy{0} , ^N[0]
+        Table():
+            div @Remain{0} , ^Ncopy[0] , ^n[0]
+            beq @DecisionA{0} , @Remain[0: , 0
+            sub @n_minus_1{0} , ^n[0] , 1
+            beq @DecisionB{0} , ^Ncopy[0] , @n_minus_1[0]
+
+
+
+
+            
+    
