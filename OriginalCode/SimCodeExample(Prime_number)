@@ -5,9 +5,9 @@
 ^ : 上位table の変数にアクセス
 --------------------------------
 Table():
-    mov #CPU_a , @Result[0]
-    mov @N{0} , #CPU_b
-    mov @CTR("LoopThis") , 1
+    mov #CPU_a , @Result[0]                    Resultを代入
+    mov @N{0} , #CPU_b                         Nをロード
+    mov @CTR("LoopThis") , 1                    ループコントロール
     mov @CTR("Spectate") , 0
     Table():
         mov ^Result{0} , @Text[0]
