@@ -7,10 +7,11 @@
 Tree() : ループコントロールを２つ持つ (Spectate , Loop)
 Procedural(): 実行コントロールを１つ持つ (Valid)
 --------------------------------
-Procedural():
-    mov @CTR_LoopThis , 1                    ループコントロール
-    mov @CTR_Spectate , 0
+
     Tree():
+        Procedural():
+            mov @CTR_LoopThis , 1                    ループコントロール
+            mov @CTR_Spectate , 0
         mov #CPU_a , @Result[0]                    Resultを代入
         mov @N{0} , #CPU_b                         Nをロード
         Tree():
