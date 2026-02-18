@@ -10,27 +10,32 @@ Procedural(): 実行コントロールを１つ持つ (Valid)
 
 Tree():
     Act():
-        mov @CTR_LoopThis , 1 ;                    ループコントロール
-        mov @CTR_Spectate , 0 ;
-    mov #CPU_a , @Result[0]                    Resultを代入
-    mov @N{0} , #CPU_b                         Nをロード
+        mov @CTR_LoopThis , 1;                    ループコントロール
+        mov @CTR_Spectate , 0;
+    Act():
+        mov #CPU_a , @Result[0];                   Resultを代入
+    Act():
+        mov @N{0} , #CPU_b;                        Nをロード
     Tree():
-        mov ^Result{0} , @Text[0]            結果に文字列を代入
-        mov @n{0} , 2                                  n = 2 初期値
-        mov @Ncopy{0} , ^N[0]
+        Act():
+            mov ^Result{0} , @Text[0];           結果に文字列を代入
+        Act():
+            mov @n{0} , 2;                                  n = 2 初期値
+        Act():
+            mov @Ncopy{0} , ^N[0];
         Tree():
             Act():
-                div @Remain{0} , ^Ncopy[0] , ^n[0] ;       余りを算出
+                div @Remain{0} , ^Ncopy[0] , ^n[0];       余りを算出
             Act():
-                beq @DecisionA{0} , @Remain[0] , 0 ;       余りが0なら
+                beq @DecisionA{0} , @Remain[0] , 0;       余りが0なら
             Act():
-                sub @n_minus_1{0} , ^n[0] , 1 ;           
+                sub @n_minus_1{0} , ^n[0] , 1;           
             Act():
                 beq @DecisionB{0} , ^Ncopy[0] , @n_minus_1[0];           N = n+1 なら
             Act():
                 mov @TextList{0} , ["False" , "True" , "Calculating"];
             Act():
-                mov *CTR_Skip , @DecisionA[0] ;
+                mov %CTR_Skip , @DecisionA[0];
                 mov ^Text{0} ,  ;
             Act():
                 mov ^n{1} , ;
