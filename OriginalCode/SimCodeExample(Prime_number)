@@ -36,13 +36,13 @@ Tree():
                 mov @TextList{0} , ["False" , "True" , "Calculating"];
             Act():
                 mov %CTR_Skip , @DecisionA[0];
-                mov ^Text{0} ,  ;
+                mov ^Text{0} , ;
             Act():
-                mov ^n{1} , ;
+                mov ^n{1} ,;
             Act():
-                mov @CTR_Spectate ,  ;
+                mov @CTR_Spectate , ;
             Act():
-                mov @CTR_LoopThis , ;
+                mov @CTR_LoopThis ,;
 
 ---------------------------------------------
 
