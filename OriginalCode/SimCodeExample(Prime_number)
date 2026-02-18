@@ -10,8 +10,8 @@ Procedural(): 実行コントロールを１つ持つ (Valid)
 
     Tree():
         Procedural():
-            mov @CTR_LoopThis , 1                    ループコントロール
-            mov @CTR_Spectate , 0
+            mov @CTR_LoopThis , 1 ;                    ループコントロール
+            mov @CTR_Spectate , 0 ;
         mov #CPU_a , @Result[0]                    Resultを代入
         mov @N{0} , #CPU_b                         Nをロード
         Tree():
@@ -25,13 +25,13 @@ Procedural(): 実行コントロールを１つ持つ (Valid)
                 beq @DecisionB{0} , ^Ncopy[0] , @n_minus_1[0]
                 mov @TextList{0} , ["False" , "True" , "Calculating"]
                 Procedural():
-                    mov ^Text{0} , （ここでDecisionの掛け算でどうにかする）
+                    mov ^Text{0} , （ここでDecisionの掛け算でどうにかする） ;
                 Procedural():
-                    mov ^n{1} , (ここもDecision でどうにかする）
+                    mov ^n{1} , (ここもDecision でどうにかする）;
                 Procedural():
-                    mov @CTR_Spectate , (Decisionでどうにかする)
+                    mov @CTR_Spectate , (Decisionでどうにかする) ;
                 Procedural():
-                    mov @CTR_LoopThis , (Decisionでどうにかする)
+                    mov @CTR_LoopThis , (Decisionでどうにかする) ;
 
 ---------------------------------------------
 
