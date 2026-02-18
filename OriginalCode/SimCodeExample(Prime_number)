@@ -27,18 +27,21 @@ Tree():
             Act():
                 div @Remain{0} , ^Ncopy[0] , ^n[0];       余りを算出
             Act():
-                beq @DecisionA{0} , @Remain[0] , 0;       余りが0なら
+                bne @Mod_0{0} , @Remain[0] , 0;       余りが0なら 0, 0でないなら 1
             Act():
                 sub @n_minus_1{0} , ^n[0] , 1;           
             Act():
-                beq @DecisionB{0} , ^Ncopy[0] , @n_minus_1[0];           N = n+1 なら
+                bne @N_n+1{0} , ^Ncopy[0] , @n_minus_1[0];           N = n+1 なら 0 , そうでないなら1
             Act():
-                mov @TextList{0} , ["False" , "True" , "Calculating"];
+                not %CTR_Skip , @Mod_0[0];                        余りが0のときSKIP
+                mov @SkipB , @N_n+1[0];                           SkipB :  実行時0, SKIP時 1
+                Act():
             Act():
-                mov %CTR_Skip , @DecisionA[0];
-                mov ^Text{0} , ;
+                mov %CTR_Skip , @Mod_0[0];                        余りが0なら 実行, そうでないならSKIP
+                mov ^Text{0} , "False";
             Act():
-                mov ^n{1} ,;
+                mov %CTR_Skip , @SkipB[0];                        余りが0でないかつN = n+1 のとき 実行
+                add ^n{1} ,1;                                    n += 1
             Act():
                 mov @CTR_Spectate , ;
             Act():
