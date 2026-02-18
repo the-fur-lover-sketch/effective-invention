@@ -5,7 +5,7 @@
 ^ : 上位table の変数にアクセス
 
 Tree() : ループコントロールを２つ持つ (Spectate , Loop)
-Procedural(): 実行コントロールを１つ持つ (Valid)
+Procedural(): 実行コントロールを１つ持つ (skip)
 --------------------------------
 
 Tree():
