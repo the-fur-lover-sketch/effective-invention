@@ -1,0 +1,62 @@
+import sounddevice as sd
+import numpy as np
+from flask import Flask, request
+import threading
+
+# 出力デバイス番号を明示（今回の例では 3番）
+output_device = 3
+
+# デフォルトデバイスに設定
+sd.default.device = output_device
+
+# デフォルトサンプリングレートを取得
+fs = int(sd.query_devices(output_device)['default_samplerate'])
+print("Using fs:", fs)
+
+#音を鳴らす
+
+frequency = 440 
+freq_lock = threading.Lock()  #周波数を保護するロック
+
+def audio_callback(outdata, frames, time, status):
+    global frequency
+    t = (np.arange(frames) + audio_callback.pos) / fs #時間軸を作成
+    with freq_lock:
+        current_freq = frequency
+    outdata[:, 0] = 0.5 * np.sin(2 * np.pi * current_freq * t)
+    audio_callback.pos += frames
+
+audio_callback.pos = 0  #サンプル位置を追跡するための属性
+
+stream = sd.OutputStream(channels=1, samplerate=fs, callback=audio_callback)
+stream.start()
+
+#iphoneから数値を操作
+app = Flask(__name__)
+
+@app.route("/")
+def index():
+    return """
+    <h3>Frequency Controller</h3>
+    <input type="range" id="freq" min="100" max="2000" value="440" oninput="send(this.value)">
+    <span id="val">440</span> Hz
+
+    <script>
+    function send(v){
+        document.getElementById("val").innerText = v;
+        fetch("/set?f=" + v);
+    }
+    </script>
+    """
+
+@app.route("/set")
+def set_value():
+    global frequency
+    f = float(request.args.get("f"))
+    with freq_lock: #周波数を更新する前にロックを取得: lockされていたら周波数を更新できない
+        frequency = f 
+    print("frequency:", frequency)
+    return "OK"
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
