@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>WebAR Demo</title>
+
+  <!-- A-Frame -->
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+
+  <!-- AR.js -->
+  <script src="https://cdn.jsdelivr.net/npm/ar.js@3.4.5/aframe/build/aframe-ar.js"></script>
+
+  <style>
+    body { margin:0; font-family:sans-serif; }
+
+    #startScreen {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: black;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 10;
+    }
+
+    button {
+      padding: 15px 30px;
+      font-size: 18px;
+      border: none;
+      border-radius: 10px;
+      background: #00c853;
+      color: white;
+    }
+
+    #loading {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: white;
+      z-index: 5;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- スタート画面 -->
+<div id="startScreen">
+  <h1>AR体験</h1>
+  <p>ボタンを押してカメラを起動</p>
+  <button onclick="startAR()">スタート</button>
+</div>
+
+<div id="loading">読み込み中...</div>
+
+<!-- ARシーン（最初は非表示） -->
+<a-scene
+  id="scene"
+  embedded
+  arjs="sourceType: webcam;"
+  style="display:none;"
+>
+
+  <!-- マーカー -->
+  <a-marker preset="hiro">
+
+    <!-- ライト -->
+    <a-entity light="type: ambient; intensity: 0.5"></a-entity>
+    <a-entity light="type: directional; intensity: 1" position="1 2 1"></a-entity>
+
+    <!-- 3Dオブジェクト -->
+    <a-box
+      position="0 0.5 0"
+      material="color: #ffffff; metalness: 1; roughness: 0.2"
+      animation="property: rotation; to: 0 360 0; loop: true; dur: 4000"
+      animation__float="property: position; dir: alternate; dur: 2000; loop: true; to: 0 0.8 0"
+    ></a-box>
+
+  </a-marker>
+
+  <!-- カメラ -->
+  <a-entity camera></a-entity>
+
+</a-scene>
+
+<script>
+function startAR() {
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('scene').style.display = 'block';
+}
+
+window.addEventListener('load', () => {
+  document.getElementById('loading').style.display = 'none';
+});
+</script>
+
+</body>
+</html>
