@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>AR.js Demo</title>
+
+  <!-- A-Frame -->
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+
+  <!-- AR.js -->
+  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+
+  <style>
+    #debug-info {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      color: #0f0;
+      font-family: monospace;
+      font-size: 12px;
+      padding: 10px;
+      border: 1px solid #0f0;
+      z-index: 100;
+      max-width: 300px;
+      overflow: auto;
+    }
+  </style>
+</head>
+
+<body style="margin: 0; overflow: hidden;">
+
+<div id="debug-info">
+  <div>Debug Info:</div>
+  <div id="fps">FPS: --</div>
+  <div id="marker-status">Marker: Not Detected</div>
+  <div id="position">Position: --</div>
+</div>
+
+<a-scene
+  embedded
+  arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: true;"
+>
+
+  <!-- マーカー -->
+  <a-marker preset="hiro" id="marker">
+    <a-box position="0 0.5 0" color="red"></a-box>
+  </a-marker>
+
+  <!-- カメラ -->
+  <a-entity camera></a-entity>
+
+</a-scene>
+
+<script>
+let lastTime = Date.now();
+let frameCount = 0;
+let fps = 0;
+
+// フレームレートとマーカー状態を更新
+function updateDebugInfo() {
+  frameCount++;
+  const now = Date.now();
+  
+  if (now - lastTime >= 1000) {
+    fps = frameCount;
+    frameCount = 0;
+    lastTime = now;
+    document.getElementById('fps').textContent = `FPS: ${fps}`;
+  }
+
+  // マーカー検出状態を確認
+  const marker = document.getElementById('marker');
+  const isMarkerVisible = marker.object3D.visible;
+  document.getElementById('marker-status').textContent = 
+    `Marker: ${isMarkerVisible ? 'Detected ✓' : 'Not Detected ✗'}`;
+
+  // マーカーの位置情報
+  if (isMarkerVisible) {
+    const pos = marker.object3D.position;
+    document.getElementById('position').textContent = 
+      `Position: X:${pos.x.toFixed(2)} Y:${pos.y.toFixed(2)} Z:${pos.z.toFixed(2)}`;
+  }
+
+  requestAnimationFrame(updateDebugInfo);
+}
+
+updateDebugInfo();
+</script>
+
+</body>
+</html>
