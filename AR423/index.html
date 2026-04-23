@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sensor Camera App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #111;
+      color: #fff;
+      text-align: center;
+    }
+
+    #app { padding: 20px; }
+
+    video {
+      width: 100%;
+      max-width: 400px;
+      margin-top: 20px;
+      transform-origin: center;
+    }
+
+    button {
+      margin: 5px;
+      padding: 10px;
+    }
+
+    .status.success { color: #4caf50; }
+    .status.error { color: #f44336; }
+
+    #angle-display { margin-top: 10px; font-family: monospace; }
+  </style>
+
+</head>
+
+<body>
+  <div id="app">
+    <h1>Sensor Camera</h1>
+
+```
+<button id="btn-gyro">Gyro</button>
+<button id="btn-orientation">Orientation</button>
+<br>
+
+<button id="btn-permission">Permission</button>
+<button id="btn-start" disabled>Start</button>
+<button id="btn-stop" disabled>Stop</button>
+<button id="btn-reset">Reset</button>
+
+<div id="sensor-status">Idle</div>
+<div id="angle-display"></div>
+<div id="api-support"></div>
+
+<video id="sensor-camera" autoplay playsinline></video>
+```
+
+  </div>
+
+  <script type="module" src="./main.js"></script>
+
+</body>
+</html>
