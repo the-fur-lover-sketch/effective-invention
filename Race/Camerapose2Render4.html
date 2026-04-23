@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sensor-based Camera Control</title>
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <style>
+    body { margin: 0; overflow: hidden; font-family: Arial, sans-serif; }
+
+    #control-panel {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.85);
+      color: #0f0;
+      padding: 10px;
+      border: 2px solid #0f0;
+      z-index: 100;
+      font-family: monospace;
+      font-size: 11px;
+      width: 300px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .control-group {
+      margin: 8px 0;
+      padding: 8px;
+      border: 1px solid #0f0;
+      border-radius: 3px;
+    }
+
+    button {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0;
+      background: #0f0;
+      color: #000;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      font-family: monospace;
+      border-radius: 3px;
+    }
+
+    button:hover {
+      background: #0d0;
+    }
+
+    button:disabled {
+      background: #555;
+      cursor: not-allowed;
+    }
+
+    .status {
+      padding: 8px;
+      margin: 8px 0;
+      background: rgba(0, 255, 0, 0.1);
+      border: 1px solid #0f0;
+      border-radius: 3px;
+      font-size: 10px;
+    }
+
+    .error {
+      background: rgba(255, 0, 0, 0.1);
+      border-color: #f00;
+      color: #f00;
+    }
+
+    .success {
+      background: rgba(0, 255, 0, 0.1);
+      border-color: #0f0;
+      color: #0f0;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      margin: 3px 0;
+    }
+
+    .slider-label {
+      font-size: 9px;
+      margin: 3px 0;
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="control-panel">
+  <div style="font-weight: bold; margin-bottom: 10px; font-size: 12px;">
+    📱 Sensor Control
+  </div>
+
+  <!-- センサータイプ選択 -->
+  <div class="control-group">
+    <label style="display: block; margin-bottom: 5px;">Sensor Type:</label>
+    <button id="btn-gyro" onclick="selectSensor('gyro')">
+      Gyroscope
+    </button>
+    <button id="btn-orientation" onclick="selectSensor('orientation')">
+      Device Orientation
+    </button>
+  </div>
+
+  <!-- パーミッション -->
+  <div class="control-group">
+    <button id="btn-permission" onclick="requestPermission()">
+      Request Permission
+    </button>
+  </div>
+
+  <!-- センサー制御 -->
+  <div class="control-group">
+    <button id="btn-start" onclick="startSensor()" disabled>
+      Start Sensor
+    </button>
+    <button id="btn-stop" onclick="stopSensor()" disabled>
+      Stop Sensor
+    </button>
+  </div>
+
+  <!-- センサー値表示 -->
+  <div class="status" id="sensor-status">
+    <div>Status: Not initialized</div>
+  </div>
+
+  <!-- 角度表示 -->
+  <div class="status" id="angle-display">
+    <div style="font-size: 10px; margin-bottom: 3px;">Current Angle:</div>
+    <div>X: 0.00° | Y: 0.00° | Z: 0.00°</div>
+  </div>
+
+  <!-- 位置表示 -->
+  <div class="status" id="position-display">
+    <div style="font-size: 10px; margin-bottom: 3px;">Position:</div>
+    <div>X: 0.00 | Y: 0.00 | Z: 3.00</div>
+  </div>
+
+  <!-- 加速度表示 -->
+  <div class="status" id="acceleration-display" style="display: none;">
+    <div style="font-size: 10px; margin-bottom: 3px;">Acceleration (m/s²):</div>
+    <div>aX: 0.00 | aY: 0.00 | aZ: 0.00</div>
+  </div>
+
+  <!-- 角速度表示（Gyroscope用） -->
+  <div class="status" id="velocity-display" style="display: none;">
+    <div style="font-size: 10px; margin-bottom: 3px;">Angular Velocity:</div>
+    <div>ωX: 0.00°/s | ωY: 0.00°/s | ωZ: 0.00°/s</div>
+  </div>
+
+  <!-- 加速度計スケール調整 -->
+  <div class="control-group" id="accel-settings" style="display: none;">
+    <label style="display: block; margin-bottom: 5px;">Acceleration Scale:</label>
+    <div class="slider-label">Scale: <span id="accel-scale-value">1.0</span>x</div>
+    <input type="range" id="accel-scale-slider" min="0.1" max="5" step="0.1" value="1.0" 
+           oninput="updateAccelScale(this.value)">
+    
+    <label style="display: block; margin-top: 10px; margin-bottom: 5px;">Deadzone (m/s²):</label>
+    <div class="slider-label">Deadzone: <span id="deadzone-value">0.5</span></div>
+    <input type="range" id="deadzone-slider" min="0" max="2" step="0.1" value="0.5" 
+           oninput="updateDeadzone(this.value)">
+  </div>
+
+  <!-- デバッグ情報 -->
+  <div class="control-group" style="font-size: 9px;">
+    <div id="debug-info">
+      <div>API Support:</div>
+      <div id="api-support"></div>
+    </div>
+  </div>
+
+  <!-- リセット -->
+  <div class="control-group">
+    <button onclick="resetCamera()">Reset Camera</button>
+  </div>
+</div>
+
+<!-- A-Frame シーン -->
+<a-scene>
+  <a-light type="ambient" intensity="0.8"></a-light>
+  <a-light type="directional" position="5 10 7" intensity="0.7"></a-light>
+
+  <a-entity id="world-origin">
+    <a-box position="0 0.5 0" color="red" scale="0.5 0.5 0.5"></a-box>
+    <a-box position="0.5 0 0" scale="1 0.1 0.1" color="red" opacity="0.8"></a-box>
+    <a-box position="0 0.5 0" scale="0.1 1 0.1" color="green" opacity="0.8"></a-box>
+    <a-box position="0 0 0.5" scale="0.1 0.1 1" color="blue" opacity="0.8"></a-box>
+    <a-plane position="0 0 0" rotation="-90 0 0" scale="5 5" 
+             color="#444" wireframe="true" opacity="0.5"></a-plane>
+  </a-entity>
+
+  <a-entity id="sensor-camera" camera position="0 0 3"></a-entity>
+  <a-entity camera></a-entity>
+</a-scene>
+
+<script>
+/**
+ * センサーコントローラー（加速度計統合版）
+ */
+class SensorCameraController {
+  constructor() {
+    this.camera = document.getElementById('sensor-camera');
+    this.currentSensor = null;
+    this.isRunning = false;
+    this.angle = { x: 0, y: 0, z: 0 };
+    this.position = { x: 0, y: 0, z: 3 };
+    this.velocity = { x: 0, y: 0, z: 0 };
+    this.angularVelocity = { x: 0, y: 0, z: 0 };
+    this.acceleration = { x: 0, y: 0, z: 0 };
+    
+    // 加速度計用パラメータ
+    this.accelScale = 1.0;
+    this.deadzone = 0.5;
+    this.lastAccelTime = Date.now();
+    
+    // 重力ベクトル（補正用）
+    this.gravity = { x: 0, y: 0, z: 9.81 };
+    
+    this.checkAPISupport();
+    this.setupUI();
+  }
+
+  /**
+   * APIサポート確認
+   */
+  checkAPISupport() {
+    const support = {
+      'Gyroscope': 'Gyroscope' in window,
+      'DeviceMotion': 'DeviceMotionEvent' in window,
+      'DeviceOrient': 'DeviceOrientationEvent' in window,
+      'Permission': typeof DeviceOrientationEvent?.requestPermission === 'function'
+    };
+
+    const supportText = Object.entries(support)
+      .map(([name, supported]) => `${name}: ${supported ? '✓' : '✗'}`)
+      .join('<br>');
+
+    document.getElementById('api-support').innerHTML = supportText;
+  }
+
+  /**
+   * UI セットアップ
+   */
+  setupUI() {
+    const btnGyro = document.getElementById('btn-gyro');
+    const btnOrientation = document.getElementById('btn-orientation');
+    const btnStart = document.getElementById('btn-start');
+    const btnStop = document.getElementById('btn-stop');
+
+    const updateButtons = (sensorType) => {
+      btnGyro.style.background = sensorType === 'gyro' ? '#0d0' : '#0f0';
+      btnOrientation.style.background = sensorType === 'orientation' ? '#0d0' : '#0f0';
+      btnStart.disabled = !sensorType;
+    };
+
+    window.selectSensor = (type) => {
+      this.currentSensor = type;
+      updateButtons(type);
+      this.updateStatus(`Sensor selected: ${type}`);
+      
+      // 加速度計設定の表示/非表示
+      document.getElementById('accel-settings').style.display = 'block';
+    };
+
+    window.requestPermission = async () => {
+      const granted = await this.askPermission();
+      if (granted) {
+        this.updateStatus('Permission granted ✓', 'success');
+      } else {
+        this.updateStatus('Permission denied ✗', 'error');
+      }
+    };
+
+    window.startSensor = () => {
+      this.initSensor(this.currentSensor);
+      btnStart.disabled = true;
+      btnStop.disabled = false;
+    };
+
+    window.stopSensor = () => {
+      this.stopCurrentSensor();
+      btnStart.disabled = false;
+      btnStop.disabled = true;
+    };
+
+    window.resetCamera = () => {
+      this.angle = { x: 0, y: 0, z: 0 };
+      this.position = { x: 0, y: 0, z: 3 };
+      this.velocity = { x: 0, y: 0, z: 0 };
+      this.updateCameraTransform();
+    };
+
+    window.updateAccelScale = (value) => {
+      this.accelScale = parseFloat(value);
+      document.getElementById('accel-scale-value').textContent = value;
+    };
+
+    window.updateDeadzone = (value) => {
+      this.deadzone = parseFloat(value);
+      document.getElementById('deadzone-value').textContent = value;
+    };
+  }
+
+  /**
+   * パーミッション要求
+   */
+  async askPermission() {
+    try {
+      if (typeof DeviceOrientationEvent !== 'undefined' &&
+          typeof DeviceOrientationEvent.requestPermission === 'function') {
+        
+        const permission = await DeviceOrientationEvent.requestPermission();
+        return permission === 'granted';
+      }
+      return true;
+    } catch (error) {
+      console.error('Permission error:', error);
+      return false;
+    }
+  }
+
+  /**
+   * センサー初期化
+   */
+  initSensor(sensorType) {
+    this.stopCurrentSensor();
+    this.isRunning = true;
+
+    try {
+      if (sensorType === 'gyro') {
+        this.initGyroscope();
+      } else if (sensorType === 'orientation') {
+        this.initDeviceOrientation();
+      }
+    } catch (error) {
+      this.updateStatus(`Error: ${error.message}`, 'error');
+    }
+  }
+
+  /**
+   * Gyroscope初期化（加速度計も同時に使用）
+   */
+  initGyroscope() {
+    if (!('Gyroscope' in window)) {
+      this.updateStatus('Gyroscope not supported', 'error');
+      return;
+    }
+
+    this.sensor = new Gyroscope({ frequency: 60 });
+
+    this.sensor.addEventListener('reading', () => {
+      // rad/s → deg/s
+      this.angularVelocity.x = this.sensor.x * 180 / Math.PI;
+      this.angularVelocity.y = this.sensor.y * 180 / Math.PI;
+      this.angularVelocity.z = this.sensor.z * 180 / Math.PI;
+
+      this.updateAngleFromVelocity();
+      this.updateDisplay();
+    });
+
+    this.sensor.addEventListener('error', (event) => {
+      this.updateStatus(`Sensor error: ${event.error.name}`, 'error');
+    });
+
+    this.sensor.start();
+
+    // DeviceMotionEventで加速度を取得
+    window.addEventListener('devicemotion', (event) => {
+      this.handleAcceleration(event);
+    });
+
+    this.updateStatus('Gyroscope + Accelerometer running ✓', 'success');
+    document.getElementById('acceleration-display').style.display = 'block';
+    document.getElementById('velocity-display').style.display = 'block';
+  }
+
+  /**
+   * DeviceOrientation初期化（加速度計も同時に使用）
+   */
+  initDeviceOrientation() {
+    window.addEventListener('deviceorientation', (event) => {
+      this.angle.z = event.alpha || 0; // Yaw
+      this.angle.x = event.beta || 0;  // Pitch
+      this.angle.y = event.gamma || 0; // Roll
+
+      this.updateCameraTransform();
+      this.updateDisplay();
+    });
+
+    // DeviceMotionEventで加速度を取得
+    window.addEventListener('devicemotion', (event) => {
+      this.handleAcceleration(event);
+    });
+
+    this.updateStatus('Device Orientation + Accelerometer running ✓', 'success');
+    document.getElementById('acceleration-display').style.display = 'block';
+  }
+
+  /**
+   * 加速度を処理して位置を更新
+   */
+  handleAcceleration(event) {
+    const now = Date.now();
+    const deltaTime = (now - this.lastAccelTime) / 1000; // ms → s
+    this.lastAccelTime = now;
+
+    if (deltaTime <= 0) return;
+
+    // デバイスの加速度を取得（重力を含まない）
+    const accel = event.acceleration;
+    if (!accel) return;
+
+    // デッドゾーン処理
+    let ax = Math.abs(accel.x) < this.deadzone ? 0 : accel.x;
+    let ay = Math.abs(accel.y) < this.deadzone ? 0 : accel.y;
+    let az = Math.abs(accel.z) < this.deadzone ? 0 : accel.z;
+
+    // スケール適用
+    ax *= this.accelScale;
+    ay *= this.accelScale;
+    az *= this.accelScale;
+
+    this.acceleration = { x: ax, y: ay, z: az };
+
+    // 加速度から速度を計算（積分）
+    this.velocity.x += ax * deltaTime;
+    this.velocity.y += ay * deltaTime;
+    this.velocity.z += az * deltaTime;
+
+    // 速度から位置を計算（積分）
+    this.position.x += this.velocity.x * deltaTime;
+    this.position.y += this.velocity.y * deltaTime;
+    this.position.z += this.velocity.z * deltaTime;
+
+    // 位置の制限（シーン外に出ないように）
+    const limit = 10;
+    this.position.x = Math.max(-limit, Math.min(limit, this.position.x));
+    this.position.y = Math.max(-limit, Math.min(limit, this.position.y));
+    this.position.z = Math.max(0.5, Math.min(limit, this.position.z));
+
+    this.updateCameraTransform();
+  }
+
+  /**
+   * 角速度から角度を更新
+   */
+  updateAngleFromVelocity() {
+    const deltaTime = 1 / 60; // 60fps
+    
+    this.angle.x += this.angularVelocity.x * deltaTime;
+    this.angle.y += this.angularVelocity.y * deltaTime;
+    this.angle.z += this.angularVelocity.z * deltaTime;
+
+    this.normalizeAngles();
+    this.updateCameraTransform();
+  }
+
+  /**
+   * 角度正規化
+   */
+  normalizeAngles() {
+    const normalize = (angle) => {
+      while (angle > 180) angle -= 360;
+      while (angle < -180) angle += 360;
+      return angle;
+    };
+
+    this.angle.x = normalize(this.angle.x);
+    this.angle.y = normalize(this.angle.y);
+    this.angle.z = normalize(this.angle.z);
+  }
+
+  /**
+   * カメラの位置と回転を更新
+   */
+  updateCameraTransform() {
+    this.camera.setAttribute('position',
+      `${this.position.x} ${this.position.y} ${this.position.z}`);
+    this.camera.setAttribute('rotation',
+      `${this.angle.x} ${this.angle.y} ${this.angle.z}`);
+  }
+
+  /**
+   * 表示更新
+   */
+  updateDisplay() {
+    // 角度表示
+    const angleText = 
+      `X: ${this.angle.x.toFixed(2)}° | Y: ${this.angle.y.toFixed(2)}° | Z: ${this.angle.z.toFixed(2)}°`;
+    document.getElementById('angle-display').innerHTML = 
+      `<div style="font-size: 10px; margin-bottom: 3px;">Current Angle:</div><div>${angleText}</div>`;
+
+    // 位置表示
+    const posText = 
+      `X: ${this.position.x.toFixed(2)} | Y: ${this.position.y.toFixed(2)} | Z: ${this.position.z.toFixed(2)}`;
+    document.getElementById('position-display').innerHTML = 
+      `<div style="font-size: 10px; margin-bottom: 3px;">Position:</div><div>${posText}</div>`;
+
+    // 加速度表示
+    const accelText = 
+      `aX: ${this.acceleration.x.toFixed(2)} | aY: ${this.acceleration.y.toFixed(2)} | aZ: ${this.acceleration.z.toFixed(2)}`;
+    document.getElementById('acceleration-display').innerHTML = 
+      `<div style="font-size: 10px; margin-bottom: 3px;">Acceleration (m/s²):</div><div>${accelText}</div>`;
+
+    if (this.currentSensor === 'gyro') {
+      const velText = 
+        `ωX: ${this.angularVelocity.x.toFixed(2)}°/s | ωY: ${this.angularVelocity.y.toFixed(2)}°/s | ωZ: ${this.angularVelocity.z.toFixed(2)}°/s`;
+      document.getElementById('velocity-display').innerHTML = 
+        `<div style="font-size: 10px; margin-bottom: 3px;">Angular Velocity:</div><div>${velText}</div>`;
+    }
+  }
+
+  /**
+   * ステータス更新
+   */
+  updateStatus(message, className = '') {
+    const statusEl = document.getElementById('sensor-status');
+    statusEl.textContent = message;
+    statusEl.className = 'status ' + className;
+  }
+
+  /**
+   * センサー停止
+   */
+  stopCurrentSensor() {
+    if (this.sensor) {
+      this.sensor.stop();
+      this.sensor = null;
+    }
+    window.removeEventListener('deviceorientation', this.handleDeviceOrientation);
+    window.removeEventListener('devicemotion', this.handleAcceleration);
+    this.isRunning = false;
+  }
+}
+
+// 初期化
+const controller = new SensorCameraController();
+</script>
+
+</body>
+</html>
