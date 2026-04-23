@@ -105,6 +105,26 @@
         <a-entity id="sensor-camera" camera look-controls="enabled: false" position="0 1.6 3"></a-entity>
     </a-scene>
 
-    <script type="module" src="./main.js"></script>
+    <script type="module">
+  // スマホの画面に強制的にエラーを出すための仕組み
+  window.onerror = function(msg, url, line) {
+    alert("❌ Error: " + msg + "\nLine: " + line + "\nURL: " + url);
+  };
+
+  logToScreen("HTML script tag started...");
+
+  function logToScreen(msg) {
+    const div = document.createElement('div');
+    div.style = "position:fixed;top:0;left:0;background:red;color:white;z-index:10002;font-size:12px;padding:5px;";
+    div.textContent = msg;
+    document.body.appendChild(div);
+    setTimeout(() => div.remove(), 3000); // 3秒で消える
+  }
+
+  // main.js をインポートして実行
+  import('./main.js').catch(err => {
+    alert("❌ Import failed: " + err.message);
+  });
+</script>
 </body>
 </html>
