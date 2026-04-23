@@ -89,9 +89,24 @@ const ui = new UIManager({
 });
 
 // --- API 対応状況を初期表示 ---
+// main.js の一番最後をこれに差し替え
+try {
+  const support = {
+    Gyroscope: typeof Gyroscope !== 'undefined',
+    DeviceOrient: typeof DeviceOrientationEvent !== 'undefined',
+    Permission: false
+  };
 
-ui.setApiSupport({
-  Gyroscope:    GyroscopeSensor.isSupported(),
-  DeviceOrient: MotionSensor.isSupported(),
-  Permission:   typeof DeviceOrientationEvent?.requestPermission === 'function',
-});
+  // iOSの権限チェックをより安全に判定
+  if (typeof DeviceOrientationEvent !== 'undefined' && 
+      typeof DeviceOrientationEvent.requestPermission === 'function') {
+    support.Permission = true;
+  }
+
+  ui.setApiSupport(support);
+  console.log("API Support display updated");
+} catch (e) {
+  console.error("Support check error:", e);
+  // エラーが起きても画面に何か出す
+  document.getElementById('api-support').textContent = "Error checking API support";
+}
