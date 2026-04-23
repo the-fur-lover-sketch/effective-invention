@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Angular Velocity + Acceleration Control</title>
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <style>
+    body { margin: 0; overflow: hidden; }
+
+    #control-panel {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #0f0;
+      padding: 8px;
+      border: 2px solid #0f0;
+      z-index: 100;
+      font-family: monospace;
+      font-size: 11px;
+      width: 280px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .control-group {
+      margin: 5px 0;
+      padding: 6px;
+      border: 1px solid #0f0;
+    }
+
+    .section-title {
+      font-weight: bold;
+      margin-top: 8px;
+      margin-bottom: 4px;
+      padding: 4px;
+      background: rgba(0, 255, 0, 0.1);
+      border-bottom: 1px solid #0f0;
+    }
+
+    input[type="number"], input[type="range"] {
+      width: 100%;
+      padding: 2px 4px;
+      margin: 1px 0;
+      background: #1a1a1a;
+      color: #0f0;
+      border: 1px solid #0f0;
+      font-family: monospace;
+      font-size: 10px;
+    }
+
+    button {
+      width: 100%;
+      padding: 5px;
+      margin: 3px 0;
+      background: #0f0;
+      color: #000;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 10px;
+    }
+
+    button:hover {
+      background: #0d0;
+    }
+
+    .status-display {
+      background: rgba(0, 255, 0, 0.1);
+      padding: 6px;
+      margin: 3px 0;
+      border: 1px solid #0f0;
+      font-size: 9px;
+      line-height: 1.3;
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="control-panel">
+  <div style="font-weight: bold; margin-bottom: 8px; font-size: 12px;">
+    Angular + Linear Control
+  </div>
+
+  <!-- Angular Velocity Section -->
+  <div class="section-title">ANGULAR VELOCITY</div>
+  
+  <div class="control-group">
+    <label>ωX (deg/s): <span id="val-omega-x">0</span></label>
+    <input type="range" id="slider-omega-x" min="-360" max="360" step="5" value="0">
+    <input type="number" id="input-omega-x" min="-360" max="360" step="1" value="0">
+  </div>
+
+  <div class="control-group">
+    <label>ωY (deg/s): <span id="val-omega-y">0</span></label>
+    <input type="range" id="slider-omega-y" min="-360" max="360" step="5" value="0">
+    <input type="number" id="input-omega-y" min="-360" max="360" step="1" value="0">
+  </div>
+
+  <div class="control-group">
+    <label>ωZ (deg/s): <span id="val-omega-z">0</span></label>
+    <input type="range" id="slider-omega-z" min="-360" max="360" step="5" value="0">
+    <input type="number" id="input-omega-z" min="-360" max="360" step="1" value="0">
+  </div>
+
+  <!-- Acceleration Section -->
+  <div class="section-title">ACCELERATION</div>
+  
+  <div class="control-group">
+    <label>aX (m/s²): <span id="val-accel-x">0</span></label>
+    <input type="range" id="slider-accel-x" min="-10" max="10" step="0.5" value="0">
+    <input type="number" id="input-accel-x" min="-10" max="10" step="0.1" value="0">
+  </div>
+
+  <div class="control-group">
+    <label>aY (m/s²): <span id="val-accel-y">0</span></label>
+    <input type="range" id="slider-accel-y" min="-10" max="10" step="0.5" value="0">
+    <input type="number" id="input-accel-y" min="-10" max="10" step="0.1" value="0">
+  </div>
+
+  <div class="control-group">
+    <label>aZ (m/s²): <span id="val-accel-z">0</span></label>
+    <input type="range" id="slider-accel-z" min="-10" max="10" step="0.5" value="0">
+    <input type="number" id="input-accel-z" min="-10" max="10" step="0.1" value="0">
+  </div>
+
+  <!-- Status Display -->
+  <div class="section-title">STATUS</div>
+  
+  <div class="status-display">
+    <div>Angle:</div>
+    <div id="current-angle">θ = (0.00°, 0.00°, 0.00°)</div>
+  </div>
+
+  <div class="status-display">
+    <div>Velocity:</div>
+    <div id="current-velocity">v = (0.00, 0.00, 0.00) m/s</div>
+  </div>
+
+  <div class="status-display">
+    <div>Position:</div>
+    <div id="current-position">p = (0.00, 0.00, 3.00) m</div>
+  </div>
+
+  <div style="margin-top: 8px;">
+    <button onclick="resetAll()">Reset All</button>
+    <button onclick="resetPosition()">Reset Position</button>
+  </div>
+</div>
+
+<a-scene>
+  <a-light type="ambient" intensity="0.8"></a-light>
+  <a-light type="directional" position="5 10 7"></a-light>
+
+  <a-entity id="world-origin">
+    <a-box position="0 0.5 0" color="red" scale="0.5 0.5 0.5"></a-box>
+    <a-box position="0.5 0 0" scale="1 0.1 0.1" color="red" opacity="0.8"></a-box>
+    <a-box position="0 0.5 0" scale="0.1 1 0.1" color="green" opacity="0.8"></a-box>
+    <a-box position="0 0 0.5" scale="0.1 0.1 1" color="blue" opacity="0.8"></a-box>
+    <a-plane position="0 0 0" rotation="-90 0 0" scale="5 5" 
+             color="#444" wireframe="true" opacity="0.5"></a-plane>
+  </a-entity>
+
+  <a-entity id="manual-camera" camera position="0 0 3"></a-entity>
+  <a-entity camera></a-entity>
+</a-scene>
+
+<script>
+class AccelerationController {
+  constructor() {
+    // 角度情報
+    this.angle = { x: 0, y: 0, z: 0 };
+    this.angularVelocity = { x: 0, y: 0, z: 0 };
+
+    // 位置情報
+    this.position = { x: 0, y: 0, z: 3 };
+    this.velocity = { x: 0, y: 0, z: 0 };
+    this.acceleration = { x: 0, y: 0, z: 0 };
+
+    this.camera = document.getElementById('manual-camera');
+    this.lastTime = Date.now();
+
+    this.setupUI();
+    this.startMainLoop();
+  }
+
+  setupUI() {
+    // Angular Velocity UI
+    const angularAxes = ['omega-x', 'omega-y', 'omega-z'];
+    const accelAxes = ['accel-x', 'accel-y', 'accel-z'];
+    const axes = ['x', 'y', 'z'];
+
+    // Angular velocity sliders/inputs
+    angularAxes.forEach((sliderId, i) => {
+      const slider = document.getElementById(`slider-${sliderId}`);
+      const input = document.getElementById(`input-${sliderId}`);
+      const axis = axes[i];
+
+      slider.addEventListener('input', (e) => {
+        input.value = e.target.value;
+        this.updateAngularVelocity();
+      });
+
+      input.addEventListener('input', (e) => {
+        slider.value = e.target.value;
+        this.updateAngularVelocity();
+      });
+    });
+
+    // Acceleration sliders/inputs
+    accelAxes.forEach((sliderId, i) => {
+      const slider = document.getElementById(`slider-${sliderId}`);
+      const input = document.getElementById(`input-${sliderId}`);
+      const axis = axes[i];
+
+      slider.addEventListener('input', (e) => {
+        input.value = e.target.value;
+        this.updateAcceleration();
+      });
+
+      input.addEventListener('input', (e) => {
+        slider.value = e.target.value;
+        this.updateAcceleration();
+      });
+    });
+  }
+
+  updateAngularVelocity() {
+    this.angularVelocity.x = parseFloat(document.getElementById('input-omega-x').value);
+    this.angularVelocity.y = parseFloat(document.getElementById('input-omega-y').value);
+    this.angularVelocity.z = parseFloat(document.getElementById('input-omega-z').value);
+
+    document.getElementById('val-omega-x').textContent = this.angularVelocity.x;
+    document.getElementById('val-omega-y').textContent = this.angularVelocity.y;
+    document.getElementById('val-omega-z').textContent = this.angularVelocity.z;
+  }
+
+  updateAcceleration() {
+    this.acceleration.x = parseFloat(document.getElementById('input-accel-x').value);
+    this.acceleration.y = parseFloat(document.getElementById('input-accel-y').value);
+    this.acceleration.z = parseFloat(document.getElementById('input-accel-z').value);
+
+    document.getElementById('val-accel-x').textContent = this.acceleration.x.toFixed(2);
+    document.getElementById('val-accel-y').textContent = this.acceleration.y.toFixed(2);
+    document.getElementById('val-accel-z').textContent = this.acceleration.z.toFixed(2);
+  }
+
+  updateState() {
+    const now = Date.now();
+    const deltaTime = (now - this.lastTime) / 1000;
+    this.lastTime = now;
+
+    // 角度更新: θ_new = θ_old + ω * Δt
+    this.angle.x += this.angularVelocity.x * deltaTime;
+    this.angle.y += this.angularVelocity.y * deltaTime;
+    this.angle.z += this.angularVelocity.z * deltaTime;
+    this.normalizeAngles();
+
+    // 速度更��: v_new = v_old + a * Δt
+    this.velocity.x += this.acceleration.x * deltaTime;
+    this.velocity.y += this.acceleration.y * deltaTime;
+    this.velocity.z += this.acceleration.z * deltaTime;
+
+    // 位置更新: p_new = p_old + v * Δt
+    this.position.x += this.velocity.x * deltaTime;
+    this.position.y += this.velocity.y * deltaTime;
+    this.position.z += this.velocity.z * deltaTime;
+
+    // カメラ更新
+    this.updateCamera();
+
+    // 表示更新
+    this.updateDisplay();
+  }
+
+  updateCamera() {
+    this.camera.setAttribute('rotation', 
+      `${this.angle.x} ${this.angle.y} ${this.angle.z}`);
+    this.camera.setAttribute('position', 
+      `${this.position.x} ${this.position.y} ${this.position.z}`);
+  }
+
+  updateDisplay() {
+    document.getElementById('current-angle').textContent = 
+      `θ = (${this.angle.x.toFixed(2)}°, ${this.angle.y.toFixed(2)}°, ${this.angle.z.toFixed(2)}°)`;
+    
+    document.getElementById('current-velocity').textContent = 
+      `v = (${this.velocity.x.toFixed(2)}, ${this.velocity.y.toFixed(2)}, ${this.velocity.z.toFixed(2)}) m/s`;
+    
+    document.getElementById('current-position').textContent = 
+      `p = (${this.position.x.toFixed(2)}, ${this.position.y.toFixed(2)}, ${this.position.z.toFixed(2)}) m`;
+  }
+
+  normalizeAngles() {
+    const normalize = (angle) => {
+      while (angle > 180) angle -= 360;
+      while (angle < -180) angle += 360;
+      return angle;
+    };
+
+    this.angle.x = normalize(this.angle.x);
+    this.angle.y = normalize(this.angle.y);
+    this.angle.z = normalize(this.angle.z);
+  }
+
+  startMainLoop() {
+    const loop = () => {
+      this.updateState();
+      requestAnimationFrame(loop);
+    };
+    loop();
+  }
+}
+
+function resetAll() {
+  // Angular velocity リセット
+  document.getElementById('input-omega-x').value = 0;
+  document.getElementById('input-omega-y').value = 0;
+  document.getElementById('input-omega-z').value = 0;
+  document.getElementById('slider-omega-x').value = 0;
+  document.getElementById('slider-omega-y').value = 0;
+  document.getElementById('slider-omega-z').value = 0;
+
+  // Acceleration リセット
+  document.getElementById('input-accel-x').value = 0;
+  document.getElementById('input-accel-y').value = 0;
+  document.getElementById('input-accel-z').value = 0;
+  document.getElementById('slider-accel-x').value = 0;
+  document.getElementById('slider-accel-y').value = 0;
+  document.getElementById('slider-accel-z').value = 0;
+
+  const controller = window.controller;
+  controller.angle = { x: 0, y: 0, z: 0 };
+  controller.velocity = { x: 0, y: 0, z: 0 };
+  controller.position = { x: 0, y: 0, z: 3 };
+  controller.acceleration = { x: 0, y: 0, z: 0 };
+  controller.updateAngularVelocity();
+  controller.updateAcceleration();
+}
+
+function resetPosition() {
+  const controller = window.controller;
+  controller.velocity = { x: 0, y: 0, z: 0 };
+  controller.position = { x: 0, y: 0, z: 3 };
+}
+
+window.controller = new AccelerationController();
+</script>
+
+</body>
+</html>
