@@ -4,7 +4,7 @@
  * 各クラスをインスタンス化してコールバックで繋ぐ「配線係」
  * ビジネスロジックは持たない
  */
-
+alert("main.js loaded");
 import { GyroscopeSensor }     from './GyroscopeSensor.js';
 import { MotionSensor }        from './MotionSensor.js';
 import { RotationIntegrator }  from './RotationIntegrator.js';
