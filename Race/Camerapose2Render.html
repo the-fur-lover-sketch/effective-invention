@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Manual Camera Pose Control</title>
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <style>
+    body { margin: 0; overflow: hidden; font-family: Arial, sans-serif; }
+
+    #control-panel {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #0f0;
+      padding: 15px;
+      border: 2px solid #0f0;
+      border-radius: 5px;
+      z-index: 100;
+      font-family: monospace;
+      font-size: 12px;
+      width: 350px;
+    }
+
+    .control-group {
+      margin: 10px 0;
+      padding: 10px;
+      border: 1px solid #0f0;
+      border-radius: 3px;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 5px;
+      margin: 3px 0;
+      background: #1a1a1a;
+      color: #0f0;
+      border: 1px solid #0f0;
+    }
+
+    button {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0;
+      background: #0f0;
+      color: #000;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="control-panel">
+  <div style="font-weight: bold; margin-bottom: 10px;">
+    Manual Camera Pose
+  </div>
+
+  <!-- Position -->
+  <div class="control-group">
+    <label>Position</label>
+    <label>X:</label>
+    <input type="number" id="pos-x" value="0" step="0.1">
+    <label>Y:</label>
+    <input type="number" id="pos-y" value="0" step="0.1">
+    <label>Z:</label>
+    <input type="number" id="pos-z" value="3" step="0.1">
+  </div>
+
+  <!-- Rotation -->
+  <div class="control-group">
+    <label>Rotation (Degrees)</label>
+    <label>Rx:</label>
+    <input type="number" id="rot-x" value="0" step="1">
+    <label>Ry:</label>
+    <input type="number" id="rot-y" value="0" step="1">
+    <label>Rz:</label>
+    <input type="number" id="rot-z" value="0" step="1">
+  </div>
+
+  <!-- Buttons -->
+  <div class="control-group">
+    <button onclick="updateCameraPose()">Apply</button>
+    <button onclick="resetCameraPose()">Reset</button>
+  </div>
+
+  <div id="status" style="margin-top: 10px; padding: 10px; background: rgba(0, 255, 0, 0.1); border: 1px solid #0f0;">
+    <div id="current-pose">Position: (0, 0, 3) / Rotation: (0°, 0°, 0°)</div>
+  </div>
+</div>
+
+<!-- A-Frame シーン（HIROマーカー なし） -->
+<a-scene>
+  <!-- 照明 -->
+  <a-light type="ambient" intensity="0.8"></a-light>
+  <a-light type="directional" position="5 10 7" intensity="0.7"></a-light>
+
+  <!-- ワールド座標の原点に3Dオブジェクトを配置 -->
+  <a-entity id="world-origin">
+    <!-- 赤いボックス（原点） -->
+    <a-box position="0 0.5 0" color="red" scale="0.5 0.5 0.5"></a-box>
+    
+    <!-- 座標軸（ギズモ） -->
+    <!-- X軸（赤） -->
+    <a-box position="0.5 0 0" scale="1 0.1 0.1" color="red" opacity="0.8"></a-box>
+    <!-- Y軸（緑） -->
+    <a-box position="0 0.5 0" scale="0.1 1 0.1" color="green" opacity="0.8"></a-box>
+    <!-- Z軸（青） -->
+    <a-box position="0 0 0.5" scale="0.1 0.1 1" color="blue" opacity="0.8"></a-box>
+
+    <!-- グリッド床 -->
+    <a-plane position="0 0 0" rotation="-90 0 0" scale="5 5" 
+             color="#444" wireframe="true" opacity="0.5"></a-plane>
+  </a-entity>
+
+  <!-- 手動入力カメラ -->
+  <a-entity id="manual-camera" camera position="0 0 3">
+  </a-entity>
+</a-scene>
+
+<script>
+const camera = document.getElementById('manual-camera');
+const posXInput = document.getElementById('pos-x');
+const posYInput = document.getElementById('pos-y');
+const posZInput = document.getElementById('pos-z');
+const rotXInput = document.getElementById('rot-x');
+const rotYInput = document.getElementById('rot-y');
+const rotZInput = document.getElementById('rot-z');
+const statusDisplay = document.getElementById('current-pose');
+
+function updateCameraPose() {
+  const x = parseFloat(posXInput.value);
+  const y = parseFloat(posYInput.value);
+  const z = parseFloat(posZInput.value);
+  const rx = parseFloat(rotXInput.value);
+  const ry = parseFloat(rotYInput.value);
+  const rz = parseFloat(rotZInput.value);
+
+  camera.setAttribute('position', `${x} ${y} ${z}`);
+  camera.setAttribute('rotation', `${rx} ${ry} ${rz}`);
+
+  statusDisplay.textContent = 
+    `Position: (${x.toFixed(2)}, ${y.toFixed(2)}, ${z.toFixed(2)}) / ` +
+    `Rotation: (${rx.toFixed(0)}°, ${ry.toFixed(0)}°, ${rz.toFixed(0)}°)`;
+
+  console.log(`Camera: pos=(${x}, ${y}, ${z}), rot=(${rx}, ${ry}, ${rz})`);
+}
+
+function resetCameraPose() {
+  posXInput.value = 0;
+  posYInput.value = 0;
+  posZInput.value = 3;
+  rotXInput.value = 0;
+  rotYInput.value = 0;
+  rotZInput.value = 0;
+  updateCameraPose();
+}
+
+// リアルタイム更新
+[posXInput, posYInput, posZInput, rotXInput, rotYInput, rotZInput].forEach(input => {
+  input.addEventListener('change', updateCameraPose);
+});
+
+updateCameraPose();
+</script>
+
+</body>
+</html>
