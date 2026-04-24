@@ -25,11 +25,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     //描画ループ
     function render() {
-      console.log("Current Rot:", rotation.y);
+      
       //1, sensor-fusion.jsから回転データを取得
       if (window.sensorFusion) {
         const rotation = window.sensorFusion.getRotation();
-        console.log(rotation.x)
+        console.log("Current Rot:", rotation.y);
         //2. A-Frameのカメラに適用
         cameraEl.setAttribute('rotation', {
           x: rotation.x,
