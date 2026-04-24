@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
       //1, sensor-fusion.jsから回転データを取得
       if (window.sensorFusion) {
         const rotation = window.sensorFusion.getRotation();
-
+        console.log(rotation.x)
         //2. A-Frameのカメラに適用
         cameraEl.setAttribute('rotation', {
           x: rotation.x,
