@@ -1,0 +1,6 @@
+{
+  "markers": [
+    { "id": 0, "x": 0, "y": 0, "z": 0, "label": "Origin" },
+    { "id": 1, "x": 1.0, "y": 0, "z": 0, "label": "Checkpoint 1" }
+  ]
+}
