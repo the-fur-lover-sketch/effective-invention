@@ -1,6 +1,7 @@
 //AR424/js/renderer.js
 document.addEventListener('DOMContentLoaded', () => {
   const statusEl = document.getElementById('status');
+  const makerCountEl = document.getElementById('marker-count');
   console.log("initializing AR");
 
   // マーカーマップ読み込みテスト
@@ -17,8 +18,31 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
   function initApp() {
-    //カメラの起動処理やcctag-detector.jsの呼び出し
-    console.log("App ready")
+    console.log("App ready");
+    
+    // A-Frameのカメラエンティティを取得
+    const cameraEl = document.querySelector('#main-camera');
+
+    //描画ループ
+    function render() {
+      //1, sensor-fusion.jsから回転データを取得
+      if (window.sensorFusion) {
+        const rotation = window.sensorFusion.getRotation();
+
+        //2. A-Frameのカメラに適用
+        cameraEl.setAttribute('rotation', {
+          x: rotation.x,
+          y: rotation.y,
+          z: rotation.z
+        });
+      }
+
+      //次のフレーム
+      requestAnimationFrame(render);
+    }
+
+    //描画開始
+    render();
   }
 });
                  
