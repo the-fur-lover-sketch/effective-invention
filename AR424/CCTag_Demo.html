@@ -14,7 +14,7 @@
         color: white;
         padding: 10px;
         font-family: sans-serif;
-        pointer-events: none;
+        pointer-events: auto;
       }
       
     </style>
@@ -23,15 +23,20 @@
     <div id="ui-overlay">
       <div>Status: <span id="status">Initializing.....</span></div>
       <div>Markers: <span id="marker-count">0</span></div>
+      <label>X (Pitch): <input type="range" id="debug-x" min="-180" max="180" value="0"></label><br>
+      <label>Y (Yaw): <input type="range" id="debug-y" min="-180" max="180" value="0"></label><br>
+      <label>Z (Roll): <input type="range" id="debug-z" min="-180" max="180" value="0"></label>
+
     </div>
 
     <a-scene>
       <a-plane position="0 0 0" rotation="0 0 0" width="20" height="10" color="#111111"></a-plane>
 
       <a-entity id="rig">
-        <a-camera id="main camera" position="0 1.5 3"></a-camera>
+        <a-camera id="main-camera" position="0 1.5 3"></a-camera>
       </a-entity>
     </a-scene>
+    <script src="js/sensor-fusion.js"></script>
     <script src="js/renderer.js"></script>
   </body>
 </html>
