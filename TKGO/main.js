@@ -16,5 +16,15 @@ window.addEventListener('DOMContentLoaded', () => {
     const ui = new NavUIController((x, z, heading) => {
         dataStore.updateData(x, z, heading);
     });
-    
+
+    //animation loop
+    function animate() {
+        requestAnimationFrame(animate);
+
+        //render the data
+        renderNavViewer(dataStore);
+
+    }
+    animate();
+
 })
