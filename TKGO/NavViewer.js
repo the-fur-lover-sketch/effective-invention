@@ -20,9 +20,9 @@ export function initNavViewer(containerId) {
     container.appendChild(renderer.domElement);
 
     //Add a box
-    const geometry = new THREE.BoxGeometry(1, 2, 1);;
+    const geometry = new THREE.BoxGeometry(1, 2, 1);
     const material = new THREE.MeshNormalMaterial();
-    boxMesh = new THREE.Mesh(geomerty, material);
+    boxMesh = new THREE.Mesh(geometry, material);
     boxMesh.position.y = 1;
     scene.add(boxMesh);
 
