@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iPhone ジャイロ積算＆ブレ計測</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; padding: 20px; text-align: center; background: #f5f5f7; color: #333; }
+        .btn-group { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+        button { font-size: 16px; padding: 12px 20px; border: none; color: white; border-radius: 8px; font-weight: bold; cursor: pointer; flex: 1; max-width: 180px; }
+        #startBtn { background: #0071e3; }
+        #startBtn:disabled { background: #999; }
+        #resetBtn { background: #ff453a; }
+        .container { max-width: 400px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: left; }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; color: #555; }
+        input[type="text"] { width: 100%; padding: 10px; font-size: 18px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; background: #f9f9f9; font-family: monospace; }
+        .status { text-align: center; font-weight: bold; color: #86868b; margin-bottom: 20px; }
+        .result-box { display: none; margin-top: 25px; border-top: 2px dashed #ddd; padding-top: 15px; }
+        h2 { font-size: 18px; margin-top: 20px; border-bottom: 1px solid #ddd; padding-bottom: 5px; color: #0071e3; }
+        h3 { font-size: 15px; margin: 10px 0 5px 0; color: #333; }
+        p { margin: 5px 0; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <h1>ジャイロ積算・ブレ計測</h1>
+    <p>iPhoneを平らな場所に固定して「センサー開始」を押してください。</p>
+    
+    <div class="btn-group">
+        <button id="startBtn">センサー開始</button>
+        <button id="resetBtn">積算リセット</button>
+    </div>
+    
+    <div id="status" class="status">待機中（タップして開始）</div>
+
+    <div class="container">
+        <h2>1. リアルタイム積算値（角度）</h2>
+        <div class="input-group">
+            <label>X軸積算（ピッチ/前後傾き）[度]</label>
+            <input type="text" id="accumX" value="0.000" readonly>
+        </div>
+        <div class="input-group">
+            <label>Y軸積算（ロール/左右傾き）[度]</label>
+            <input type="text" id="accumY" value="0.000" readonly>
+        </div>
+        <div class="input-group">
+            <label>Z軸積算（ヨー/方位回転）[度]</label>
+            <input type="text" id="accumZ" value="0.000" readonly>
+        </div>
+
+        <!-- 5秒後に表示される結果エリア -->
+        <div id="resultBox" class="result-box">
+            <h2>2. 最初の5秒間のノイズ解析結果</h2>
+            <p><strong>サンプリング数:</strong> <span id="count">0</span> 個</p>
+            
+            <h3>X軸（前後）</h3>
+            <p>平均オフセット: <span id="meanX">0</span> deg/s</p>
+            <p>ブレ（標準偏差）: <span id="stdX">0</span> deg/s</p>
+
+            <h3>Y軸（左右）</h3>
+            <p>平均オフセット: <span id="meanY">0</span> deg/s</p>
+            <p>ブレ（標準偏差）: <span id="stdY">0</span> deg/s</p>
+
+            <h3>Z軸（回転）</h3>
+            <p>平均オフセット: <span id="meanZ">0</span> deg/s</p>
+            <p>ブレ（標準偏差）: <span id="stdZ">0</span> deg/s</p>
+        </div>
+    </div>
+
+<script>
+const startBtn = document.getElementById('startBtn');
+const resetBtn = document.getElementById('resetBtn');
+const statusText = document.getElementById('status');
+const resultBox = document.getElementById('resultBox');
+
+// テキストボックス要素
+const accumXInput = document.getElementById('accumX');
+const accumYInput = document.getElementById('accumY');
+const accumZInput = document.getElementById('accumZ');
+
+// 積算用の角度変数
+let integratedX = 0;
+let integratedY = 0;
+let integratedZ = 0;
+
+// 最初の5秒間サンプリング用の配列
+let sampleX = [];
+let sampleY = [];
+let sampleZ = [];
+
+let lastTimestamp = 0;
+let isRunning = false;
+let isSampling = false;
+const SAMPLE_TIME_MS = 5000; // 最初から5秒間データを集める
+
+// 1. iPhoneのセンサー許可と起動
+startBtn.addEventListener('click', async () => {
+    if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+        try {
+            const permissionState = await DeviceMotionEvent.requestPermission();
+            if (permissionState === 'granted') {
+                startSensor();
+            } else {
+                alert('センサーへのアクセスが拒否されました。');
+            }
+        } catch (error) {
+            alert('エラー: ' + error);
+        }
+    } else {
+        startSensor();
+    }
+});
+
+function startSensor() {
+    if (isRunning) return;
+    isRunning = true;
+    isSampling = true;
+    startBtn.disabled = true;
+    resultBox.style.display = 'none';
+    statusText.innerText = '最初の5秒間は動かさないでください...';
+
+    // データの初期化
+    integratedX = 0; integratedY = 0; integratedZ = 0;
+    sampleX = []; sampleY = []; sampleZ = [];
+    
+    lastTimestamp = performance.now();
+
+    // イベントリスナーの登録
+    window.addEventListener('devicemotion', handleMotion);
+    
+    // 常時画面更新ループの開始
+    updateLoop();
+
+    // 5秒後にサンプリングのみ停止して解析
+    setTimeout(() => {
+        isSampling = false;
+        statusText.innerText = '5秒の解析完了！常時積算モニター中...';
+        calculateNoise();
+    }, SAMPLE_TIME_MS);
+}
+
+// 2. リセットボタンの処理
+resetBtn.addEventListener('click', () => {
+    integratedX = 0;
+    integratedY = 0;
+    integratedZ = 0;
+    if (isRunning && !isSampling) {
+        statusText.innerText = '積算値をリセットしました（モニター継続中）';
+    }
+});
+
+// 3. センサーデータ受信と積算ロジック
+function handleMotion(event) {
+    if (!isRunning) return;
+
+    const gyro = event.rotationRate;
+    if (!gyro || gyro.alpha === null) return;
+
+    // 経過時間（dt）の計算
+    const now = performance.now();
+    const dt = (now - lastTimestamp) / 1000; 
+    lastTimestamp = now;
+
+    if (dt > 0.5) return; // バックグラウンド復帰時などの異常値を排除
+
+    // 【常時積算】 角度 ＝ 角度 ＋ (角速度 × 時間)
+    integratedX += gyro.beta * dt;
+    integratedY += gyro.gamma * dt;
+    integratedZ += gyro.alpha * dt;
+
+    // 最初の5秒間だけ配列に生の角速度を貯める
+    if (isSampling) {
+        sampleX.push(gyro.beta);
+        sampleY.push(gyro.gamma);
+        sampleZ.push(gyro.alpha);
+    }
+}
+
+// 4. 常時行う関数（テキストボックスへのリアルタイム反映ループ）
+function updateLoop() {
+    if (!isRunning) return;
+
+    // 積算角度を常にテキストボックスに表示（小数点3桁）
+    accumXInput.value = integratedX.toFixed(3);
+    accumYInput.value = integratedY.toFixed(3);
+    accumZInput.value = integratedZ.toFixed(3);
+
+    // 次のフレームで再帰呼び出し
+    requestAnimationFrame(updateLoop);
+}
+
+// 5. 5秒間のノイズ統計計算
+function calculateNoise() {
+    if (sampleX.length === 0) {
+        alert('データが取得できませんでした。iPhone実機のSafariで試してください。');
+        return;
+    }
+
+    const getStats = (dataArray) => {
+        const n = dataArray.length;
+        const mean = dataArray.reduce((a, b) => a + b, 0) / n; // 平均（オフセット）
+        const variance = dataArray.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / n; // 分散
+        const stdDev = Math.sqrt(variance); // 標準偏差（ブレ幅）
+        return { mean: mean.toFixed(4), std: stdDev.toFixed(4) };
+    };
+
+    const statsX = getStats(sampleX);
+    const statsY = getStats(sampleY);
+    const statsZ = getStats(sampleZ);
+
+    // 結果画面に流し込み
+    document.getElementById('count').innerText = sampleX.length;
+    
+    document.getElementById('meanX').innerText = statsX.mean;
+    document.getElementById('stdX').innerText = statsX.std;
+
+    document.getElementById('meanY').innerText = statsY.mean;
+    document.getElementById('stdY').innerText = statsY.std;
+
+    document.getElementById('meanZ').innerText = statsZ.mean;
+    document.getElementById('stdZ').innerText = statsZ.std;
+
+    // 修正された表示ロジック
+    resultBox.style.display = 'block';
+}
+</script>
+</body>
+</html>
