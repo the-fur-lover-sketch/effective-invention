@@ -1,1 +1,145 @@
 
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iPhone ジャイロブレ計測</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; padding: 20px; text-align: center; background: #f5f5f7; }
+        button { font-size: 18px; padding: 12px 24px; border: none; background: #0071e3; color: white; border-radius: 8px; font-weight: bold; margin-bottom: 20px; cursor: pointer; }
+        button:disabled { background: #999; }
+        .result-box { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-top: 20px; text-align: left; display: none; }
+        .status { font-weight: bold; color: #86868b; margin: 10px 0; }
+        h2 { font-size: 20px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+    </style>
+</head>
+<body>
+
+    <h1>ジャイロセンサー計測</h1>
+    <p>iPhoneを平らな場所に完全に固定して、下のボタンを押してください。</p>
+    
+    <button id="startBtn">計測開始（5秒間）</button>
+    <div id="status" class="status">待機中</div>
+
+    <div id="result" class="result-box">
+        <h2>計測結果 (単位: deg/s)</h2>
+        <p><strong>データ数:</strong> <span id="count">0</span> 個</p>
+        
+        <h3>ベータ軸（前後傾き）</h3>
+        <p>平均オフセット: <span id="beta-mean">0</span></p>
+        <p>ブレ（標準偏差）: <span id="beta-std">0</span></p>
+
+        <h3>ガンマ軸（左右傾き）</h3>
+        <p>平均オフセット: <span id="gamma-mean">0</span></p>
+        <p>ブレ（標準偏差）: <span id="gamma-std">0</span></p>
+
+        <h3>アルファ軸（方位回転）</h3>
+        <p>平均オフセット: <span id="alpha-mean">0</span></p>
+        <p>ブレ（標準偏差）: <span id="alpha-std">0</span></p>
+    </div>
+
+<script>
+const startBtn = document.getElementById('startBtn');
+const statusText = document.getElementById('status');
+const resultBox = document.getElementById('result');
+
+let betaData = [];
+let gammaData = [];
+let alphaData = [];
+let isSampling = false;
+const SAMPLE_TIME_MS = 5000; // 計測時間（5秒）
+
+// 1. ボタンクリック時の処理（iPhone用のパーミッション要求）
+startBtn.addEventListener('click', async () => {
+    // iOS 13+ のためのセンサー許可リクエスト
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+        try {
+            const permissionState = await DeviceOrientationEvent.requestPermission();
+            if (permissionState === 'granted') {
+                startMeasurement();
+            } else {
+                alert('センサーのアクセスが拒否されました。設定を確認してください。');
+            }
+        } catch (error) {
+            alert('エラーが発生しました: ' + error);
+        }
+    } else {
+        // iOS以外のブラウザ、または古いiOSの場合
+        startMeasurement();
+    }
+});
+
+// 2. 計測開始処理
+function startMeasurement() {
+    // 配列のリセット
+    betaData = [];
+    gammaData = [];
+    alphaData = [];
+    isSampling = true;
+    
+    startBtn.disabled = true;
+    resultBox.style.display = 'none';
+    statusText.innerText = '計測中... 動かさないでください（5秒）';
+
+    // イベントリスナーを登録
+    window.addEventListener('deviceorientation', handleOrientation);
+
+    // 5秒後に自動停止して計算
+    setTimeout(() => {
+        window.removeEventListener('deviceorientation', handleOrientation);
+        isSampling = false;
+        startBtn.disabled = false;
+        statusText.innerText = '計測完了！';
+        calculateMetrics();
+    }, SAMPLE_TIME_MS);
+}
+
+// 3. データ取得処理（センサーが動くたびに実行される）
+function handleOrientation(event) {
+    if (!isSampling) return;
+    
+    // イベントから角速度（または現在の角度変化）を取得して配列へ蓄積
+    if (event.beta !== null) betaData.push(event.beta);
+    if (event.gamma !== null) gammaData.push(event.gamma);
+    if (event.alpha !== null) alphaData.push(event.alpha);
+}
+
+// 4. 統計ロジック（平均値と標準偏差の計算）
+function calculateMetrics() {
+    if (betaData.length === 0) {
+        alert('センサーデータが取得できませんでした。iPhoneの実機で試してください。');
+        return;
+    }
+
+    // 計算関数
+    const getStats = (dataArray) => {
+        const n = dataArray.length;
+        const mean = dataArray.reduce((a, b) => a + b, 0) / n; // 平均
+        const variance = dataArray.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / n; // 分散
+        const stdDev = Math.sqrt(variance); // 標準偏差
+        return { mean: mean.toFixed(4), std: stdDev.toFixed(4) };
+    };
+
+    const betaStats = getStats(betaData);
+    const gammaStats = getStats(gammaData);
+    const alphaStats = getStats(alphaData);
+
+    // 画面に表示
+    document.getElementById('count').innerText = betaData.length;
+    
+    document.getElementById('beta-mean').innerText = betaStats.mean;
+    document.getElementById('beta-std').innerText = betaStats.std;
+
+    document.getElementById('gamma-mean').innerText = gammaStats.mean;
+    document.getElementById('gamma-std').innerText = gammaStats.std;
+
+    document.getElementById('alpha-mean').innerText = alphaStats.mean;
+    document.getElementById('alpha-std').innerText = alphaStats.std;
+
+    resultBox.style.style.display = 'block'; // 結果エリアを表示
+    resultBox.style.display = 'block';
+}
+</script>
+</body>
+</html>
